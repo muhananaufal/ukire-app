@@ -47,9 +47,9 @@
                           <span>Total</span>
                           <span class="font-bold">Rp {{ number_format(\Cart::getTotal(), 0, ',', '.') }}</span>
                       </div>
-                      <a href="#" class="mt-6 w-full block text-center bg-gray-800 text-white py-3 px-4 rounded-md hover:bg-gray-700">
-                          Proceed to Checkout
-                      </a>
+                      <a href="{{ route('checkout.index') }}" class="mt-6 w-full block text-center bg-gray-800 text-white py-3 px-4 rounded-md hover:bg-gray-700">
+                        Proceed to Checkout
+                    </a>
                   </div>
               </aside>
           </div>
