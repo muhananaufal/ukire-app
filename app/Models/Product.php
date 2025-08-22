@@ -31,4 +31,25 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class);
     }
+
+    /**
+     * Scope a query to only include products matching the search and category filters.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  array  $filters
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['search'] ?? false, function ($query, $search) {
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('description', 'like', '%' . $search . '%');
+        });
+
+        $query->when($filters['category'] ?? false, function ($query, $category) {
+            $query->whereHas('category', function ($query) use ($category) {
+                $query->where('slug', $category);
+            });
+        });
+    }
 }
