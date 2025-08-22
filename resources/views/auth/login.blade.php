@@ -38,7 +38,16 @@
                     {{ __('Forgot your password?') }}
                 </a>
             @endif
-
+        </div>
+        <div class="my-4 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-gray-300 after:mt-0.5 after:flex-1 after:border-t after:border-gray-300">
+            <p class="mx-4 mb-0 text-center font-semibold text-gray-500">OR</p>
+        </div>
+        <a href="{{ route('login.google') }}" 
+           class="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+            <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24" ...> </svg>
+            Sign in with Google
+        </a>
+        <div class="flex items-center justify-end mt-4">
             <x-primary-button class="ms-3">
                 {{ __('Log in') }}
             </x-primary-button>
