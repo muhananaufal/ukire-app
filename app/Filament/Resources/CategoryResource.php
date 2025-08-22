@@ -3,12 +3,15 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
+use App\Filament\Widgets\ProductCategoryPieChart; // <-- 1. Tambahkan ini
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
@@ -17,9 +20,11 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationGroup = 'Shop';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
+        // Form ini sudah cukup baik, kita tidak perlu mengubahnya
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
@@ -42,12 +47,41 @@ class CategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('slug'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
+
+                // ===================================================================
+                // WOW #1: Tampilkan jumlah produk di setiap kategori
+                // ===================================================================
+                Tables\Columns\TextColumn::make('products_count')
+                    ->counts('products')
+                    ->label('Total Products')
+                    ->sortable(),
+                // ===================================================================
+
+                // ===================================================================
+                // WOW #2: Tampilkan total pendapatan dari setiap kategori
+                // ===================================================================
+                Tables\Columns\TextColumn::make('total_revenue')
+                    ->label('Total Revenue')
+                    ->money('IDR', divideBy: 100)
+                    ->getStateUsing(function (Model $record) {
+                        // ===================================================================
+                        // GANTI QUERY YANG LAMA DENGAN QUERY BARU YANG BENAR & EFISIEN INI
+                        // ===================================================================
+                        return \App\Models\OrderItem::query()
+                            ->whereHas('product', fn($query) => $query->where('category_id', $record->id))
+                            ->whereHas('order', fn($query) => $query->whereIn('status', ['processing', 'shipped', 'completed']))
+                            ->sum(DB::raw('price * quantity')); // Menjumlahkan total (harga x kuantitas)
+                        // ===================================================================
+                    })
+                    ->sortable(),
+                // ===================================================================
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Last Updated')
+                    ->since()
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -75,6 +109,16 @@ class CategoryResource extends Resource
             'index' => Pages\ListCategories::route('/'),
             'create' => Pages\CreateCategory::route('/create'),
             'edit' => Pages\EditCategory::route('/{record}/edit'),
+        ];
+    }
+
+    // ===================================================================
+    // WOW #3: Tampilkan Pie Chart di atas tabel
+    // ===================================================================
+    public static function getWidgets(): array
+    {
+        return [
+            ProductCategoryPieChart::class,
         ];
     }
 }

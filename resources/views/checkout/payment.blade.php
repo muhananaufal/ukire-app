@@ -11,16 +11,18 @@
       document.getElementById('pay-button').onclick = function(){
           snap.pay('{{ $snapToken }}', {
               onSuccess: function(result){
+                  /* PENGALIHAN SEKARANG KE HALAMAN SUKSES, BUKAN DASHBOARD */
+                  console.log('Payment success!', result);
                   window.location.href = '{{ route("checkout.success", $order) }}'
               },
               onPending: function(result){
-                  alert("waiting for your payment!"); console.log(result);
+                  alert("Waiting for your payment!"); console.log(result);
               },
               onError: function(result){
-                  alert("payment failed!"); console.log(result);
+                  alert("Payment failed!"); console.log(result);
               },
               onClose: function(){
-                  alert('you closed the popup without completing the payment');
+                  alert('You closed the popup without completing the payment');
               }
           })
       };

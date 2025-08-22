@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class ProductResource extends Resource
@@ -18,95 +20,121 @@ class ProductResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-bolt';
     protected static ?string $navigationGroup = 'Shop';
 
+    public static bool $isGloballySearchable = true;
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Category' => $record->category->name,
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Group::make()->schema([
-                    Forms\Components\Section::make('Product Information')->schema([
+                Forms\Components\Tabs::make('Product Tabs')->tabs([
+                    Forms\Components\Tabs\Tab::make('Information')->schema([
                         Forms\Components\TextInput::make('name')
-                            ->required()
-                            ->maxLength(255)
-                            ->live(onBlur: true)
+                            ->required()->maxLength(255)->live(onBlur: true)
                             ->afterStateUpdated(fn(string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-
                         Forms\Components\TextInput::make('slug')
-                            ->required()
-                            ->maxLength(255)
-                            ->disabled()
-                            ->dehydrated()
+                            ->required()->maxLength(255)->disabled()->dehydrated()
                             ->unique(Product::class, 'slug', ignoreRecord: true),
-
                         Forms\Components\RichEditor::make('description')
-                            ->required()
-                            ->columnSpanFull(),
+                            ->required()->columnSpanFull(),
                     ]),
-
-                    Forms\Components\Section::make('Images')->schema([
+                    Forms\Components\Tabs\Tab::make('Images')->schema([
                         Forms\Components\Repeater::make('images')
-                            ->relationship()
-                            ->schema([
-                                Forms\Components\FileUpload::make('image_path')
-                                    ->required()
-                                    ->image()
-                                    ->disk('public')
-                                    ->directory('product-images'),
-                            ])->columnSpanFull(),
+                            ->relationship()->schema([
+                                Forms\Components\FileUpload::make('image_path')->required()->image()->disk('public')->directory('product-images')->columnSpan(2),
+                                Forms\Components\Toggle::make('is_featured')->label('Featured')->helperText('Tandai sebagai gambar utama.'),
+                            ])
+                            ->reorderableWithDragAndDrop()->orderColumn('sort_order')
+                            ->columnSpanFull()->columns(3),
                     ]),
-                ])->columnSpan(2),
-
-                Forms\Components\Group::make()->schema([
-                    Forms\Components\Section::make('Pricing & Details')->schema([
+                    Forms\Components\Tabs\Tab::make('Details, Pricing & Status')->schema([
                         Forms\Components\TextInput::make('price')
-                            ->required()
-                            ->numeric()
-                            ->prefix('Rp')
-                            ->helperText('Harga dalam satuan Rupiah, misal: 1500000')
-                            ->dehydrateStateUsing(fn(string $state): int => $state * 100) // Simpan ke DB sebagai sen/unit terkecil
-                            ->formatStateUsing(fn(?int $state): string => $state ? $state / 100 : ''), // Ambil dari DB & tampilkan
-
+                            ->required()->numeric()->prefix('Rp')
+                            ->dehydrateStateUsing(fn($state): int => $state * 100)
+                            ->formatStateUsing(fn(?int $state): string => $state ? $state / 100 : ''),
                         Forms\Components\Select::make('category_id')
-                            ->relationship('category', 'name')
-                            ->required(),
+                            ->relationship('category', 'name')->required(),
+                        Forms\Components\TextInput::make('material')->required(),
+                        Forms\Components\TextInput::make('dimensions')->required(),
+                        Forms\Components\TextInput::make('preorder_estimate')->required(),
 
-                        Forms\Components\TextInput::make('material')
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('dimensions')
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('preorder_estimate')
-                            ->required()
-                            ->maxLength(255)
-                            ->helperText('Contoh: 3-4 Minggu'),
-                    ])
-                ])->columnSpan(1),
-            ])->columns(3);
+                        // WOW #1: Tambahkan Status Produk (Published / Draft)
+                        Forms\Components\Toggle::make('is_published')
+                            ->label('Published')
+                            ->helperText('Jika nonaktif, produk akan disembunyikan dari katalog.')
+                            ->default(true),
+                    ]),
+                ])->columnSpanFull(),
+            ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('images.image_path')
+                    ->label('Image')
+                    ->getStateUsing(fn($record) => $record->images->first()?->image_path)
+                    ->disk('public')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('category.name')
-                    ->sortable(),
+                    ->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('IDR') // Otomatis format ke Rupiah
+                    ->money('IDR', divideBy: 100)->sortable(),
+
+                // WOW #2: Tampilkan Status Published / Draft dengan Toggle
+                Tables\Columns\ToggleColumn::make('is_published')
+                    ->label('Published'),
+
+                // WOW #3: Tampilkan berapa kali produk ini dipesan
+                Tables\Columns\TextColumn::make('order_items_count')
+                    ->counts('orderItems')
+                    ->label('Times Ordered')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('category_id')
-                    ->relationship('category', 'name')
-                    ->label('Category')
+                Tables\Filters\SelectFilter::make('category')
+                    ->relationship('category', 'name'),
+                Tables\Filters\TernaryFilter::make('is_published')
+                    ->label('Publication Status')
+                    ->boolean()
+                    ->trueLabel('Published')
+                    ->falseLabel('Drafts'),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+
+                // WOW #4: Aksi untuk duplikat produk
+                Tables\Actions\ReplicateAction::make()
+                    ->label('Duplicate')
+                    ->excludeAttributes(['slug']) // Slug harus unik, jadi kita kosongkan
+                    ->before(function (Tables\Actions\ReplicateAction $action, Model $record) {
+                        $action->fillForm($record->toArray());
+                    }),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('images');
     }
 
     public static function getRelations(): array

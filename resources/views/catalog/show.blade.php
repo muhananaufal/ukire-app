@@ -61,8 +61,10 @@
                 </div>
             </form>
             
-            <a href="https://wa.me/..." ...>
-                Tanya via WA
+            <a href="https://wa.me/{{ config('ukire.whatsapp_number') }}?text={{ urlencode(config('ukire.whatsapp_message') . ' ' . $product->name) }}"
+              target="_blank" 
+              class="w-full flex items-center justify-center bg-green-500 text-white py-3 px-6 rounded-md text-lg hover:bg-green-600 transition-colors">
+              Chat Via Whatsapp
             </a>
           </div>
       </div>

@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @mixin IdeHelperOrder
+ */
 class Order extends Model
 {
     use HasFactory;
@@ -17,6 +20,7 @@ class Order extends Model
         'status',
         'shipping_address',
         'payment_gateway_reference',
+        'snap_token',
     ];
 
     public function user(): BelongsTo
