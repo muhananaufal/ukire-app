@@ -23,6 +23,7 @@
     
     {{-- Our Reusable Footer Component --}}
     <x-partials.footer />
+    @stack('scripts')
 
 </body>
 </html>

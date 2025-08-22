@@ -28,7 +28,7 @@ class CheckoutController extends Controller
         ]);
 
         $cartItems = \Cart::getContent();
-        $totalPrice = \Cart::getTotal() * 100; // Simpan kembali ke unit sen/terkecil
+        $totalPrice = \Cart::getTotal();
 
         try {
             DB::beginTransaction();
@@ -36,8 +36,8 @@ class CheckoutController extends Controller
             // 1. Create the Order
             $order = Order::create([
                 'user_id' => auth()->id(),
-                'total_price' => $totalPrice,
-                'status' => 'pending', // Status awal
+                'total_price' => $totalPrice * 100,
+                'status' => 'unpaid', // Status awal
                 'shipping_address' => $request->shipping_address . ' | Phone: ' . $request->phone,
             ]);
 
@@ -46,20 +46,39 @@ class CheckoutController extends Controller
                 $order->items()->create([
                     'product_id' => $item->id,
                     'quantity' => $item->quantity,
-                    'price' => $item->price * 100, // Simpan harga per item dalam unit terkecil
+                    'price' => $item->price * 100,
                 ]);
             }
 
-            DB::commit();
+            \Midtrans\Config::$serverKey = config('midtrans.server_key');
+            \Midtrans\Config::$isProduction = config('midtrans.is_production');
+            \Midtrans\Config::$isSanitized = true;
+            \Midtrans\Config::$is3ds = true;
 
-            // 3. Clear the cart
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $order->id,
+                    'gross_amount' => $totalPrice,
+                ],
+                'customer_details' => [
+                    'first_name' => $request->name,
+                    'email' => auth()->user()->email,
+                    'phone' => $request->phone,
+                    'shipping_address' => [
+                        'address' => $request->shipping_address,
+                    ],
+                ],
+            ];
+
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
+            $order->update(['snap_token' => $snapToken]);
+
+            DB::commit();
             \Cart::clear();
 
-            // 4. Redirect to success page
-            return redirect()->route('checkout.success', $order)->with('success', 'Your pre-order has been placed successfully!');
+            return view('checkout.payment', compact('snapToken', 'order'));
         } catch (\Exception $e) {
             DB::rollBack();
-            // Opsional: Log error $e->getMessage()
             return redirect()->back()->with('error', 'Something went wrong. Please try again.');
         }
     }
