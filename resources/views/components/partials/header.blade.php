@@ -10,7 +10,14 @@
             <div class="hidden sm:block">
                 <div class="ml-10 flex items-baseline space-x-4">
                     <a href="{{ route('catalog.index') }}" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Katalog</a>
-                    {{-- Add other links here if needed --}}
+                    <a href="{{ route('cart.index') }}" class="relative text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        Cart
+                        @if ($cartCount > 0)
+                            <span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
+                    </a>                
                 </div>
             </div>
 

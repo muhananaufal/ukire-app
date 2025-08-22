@@ -47,17 +47,23 @@
                   </dl>
               </div>
               
-              <div class="mt-8 space-y-4">
-                  <button class="w-full bg-gray-800 text-white py-3 px-6 rounded-md text-lg hover:bg-gray-700">Pre-Order Sekarang</button>
-                  <a href="https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20dengan%20produk%20{{ urlencode($product->name) }}"
-                     target="_blank" 
-                     class="w-full flex items-center justify-center bg-green-500 text-white py-3 px-6 rounded-md text-lg hover:bg-green-600">
-                      <span class="mr-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                      </span>
-                      Tanya via WA
-                  </a>
-              </div>
+              <form action="{{ route('cart.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                
+                <div class="mt-8 flex items-center space-x-4">
+                    <div class="w-24">
+                        <label for="quantity" class="sr-only">Quantity</label>
+                        <input type="number" name="quantity" id="quantity" value="1" min="1" 
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-800 focus:ring-gray-800 sm:text-sm">
+                    </div>
+                    <button type="submit" class="flex-1 bg-gray-800 text-white py-3 px-6 rounded-md text-lg hover:bg-gray-700">Pre-Order Sekarang</button>
+                </div>
+            </form>
+            
+            <a href="https://wa.me/..." ...>
+                Tanya via WA
+            </a>
           </div>
       </div>
   </div>
