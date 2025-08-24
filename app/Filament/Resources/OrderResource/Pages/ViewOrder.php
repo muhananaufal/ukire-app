@@ -50,9 +50,22 @@ class ViewOrder extends ViewRecord
                     // Kolom Kanan: Detail Pelanggan & Pengiriman
                     Section::make('Customer & Shipping')
                         ->schema([
-                            TextEntry::make('user.name')->label('Customer Name'),
+                            TextEntry::make('user.name')->label('Customer Account'),
                             TextEntry::make('user.email')->label('Customer Email'),
-                            TextEntry::make('shipping_address'),
+                            TextEntry::make('recipient_name')
+                                ->label('Recipient Name'),
+                            TextEntry::make('phone')
+                                ->label('Recipient Phone')
+                                ->icon('heroicon-o-phone')
+                                // Logika baru yang lebih aman
+                                ->url(function (?string $state): ?string {
+                                    if (empty($state)) {
+                                        return null;
+                                    }
+                                    return 'tel:' . $state;
+                                }),
+                            TextEntry::make('shipping_address')
+                                ->label('Recipient Address'),
                         ])->columnSpan(2),
                 ]),
                 // Bagian Bawah: Item Pesanan

@@ -10,21 +10,32 @@ class CatalogController extends Controller
 {
     public function index()
     {
+        $products = Product::latest()
+            ->where('is_published', true)
+            ->with('category', 'images')
+            ->filter(request(['search', 'category', 'sort']))
+            ->paginate(4)
+            ->withQueryString();
+
         return view('catalog.index', [
-            'products' => Product::latest()
-                ->with('category', 'images')
-                ->filter(request(['search', 'category']))
-                ->paginate(9)
-                ->withQueryString(),
+            'products' => $products,
             'categories' => Category::all()
         ]);
     }
 
     public function show(Product $product)
     {
-        // Eager load relationships for the single product view as well
+        // Eager load relasi untuk produk utama
         $product->load(['category', 'images']);
 
-        return view('catalog.show', compact('product'));
+        // Ambil produk terkait: produk lain dari kategori yang sama, kecuali produk saat ini
+        $relatedProducts = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('is_published', true)
+            ->inRandomOrder()
+            ->limit(4)
+            ->get();
+
+        return view('catalog.show', compact('product', 'relatedProducts'));
     }
 }

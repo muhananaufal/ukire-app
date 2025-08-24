@@ -65,14 +65,28 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('Order ID')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
+                    ->label('Customer Account') // Kita beri label lebih jelas
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('recipient_name')
+                    ->label('Recipient Name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('Customer Phone')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true), // Sembunyikan defaultnya agar tabel tidak terlalu ramai
+                Tables\Columns\TextColumn::make('shipping_address')
+                    ->label('Shipping Address')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true), // Sembunyikan defaultnya agar tabel tidak terlalu ramai
                 Tables\Columns\TextColumn::make('total_price')
                     ->money('IDR', divideBy: 100)
                     ->sortable(),
@@ -84,8 +98,8 @@ class OrderResource extends Resource
                     ->badge() // <-- Ini akan mengubahnya menjadi badge
                     ->color(fn(string $state): string => match ($state) {
                         'unpaid' => 'warning',
-                        'processing' => 'info',
-                        'shipped' => 'primary',
+                        'processing' => 'gray',
+                        'shipped' => 'info',
                         'completed' => 'success',
                         'cancelled' => 'danger',
                         default => 'gray',
@@ -115,9 +129,21 @@ class OrderResource extends Resource
                             ->send();
                     })
                     ->icon('heroicon-o-truck')
+                    ->color('info')
+                    ->requiresConfirmation() // Minta konfirmasi sebelum menjalankan
+                    ->visible(fn(Order $record): bool => $record->status === 'processing'),
+                Action::make('Mark as Completed')
+                    ->action(function (Order $record) {
+                        $record->update(['status' => 'completed']);
+                        Notification::make()
+                            ->title('Order marked as completed')
+                            ->success()
+                            ->send();
+                    })
+                    ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation() // Minta konfirmasi sebelum menjalankan
-                    ->visible(fn(Order $record): bool => $record->status === 'processing'), // Hanya tampil jika status 'processing'
+                    ->visible(fn(Order $record): bool => $record->status === 'shipped'), // Hanya tampil jika status 'processing'
 
             ])
             ->bulkActions([

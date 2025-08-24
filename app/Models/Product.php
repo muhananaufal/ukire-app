@@ -50,14 +50,23 @@ class Product extends Model
     public function scopeFilter($query, array $filters)
     {
         $query->when($filters['search'] ?? false, function ($query, $search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('description', 'like', '%' . $search . '%');
+            $query->where('name', 'like', '%' . $search . '%');
         });
 
         $query->when($filters['category'] ?? false, function ($query, $category) {
             $query->whereHas('category', function ($query) use ($category) {
                 $query->where('slug', $category);
             });
+        });
+
+        $query->when($filters['sort'] ?? 'latest', function ($query, $sort) {
+            if ($sort === 'price_asc') {
+                $query->orderBy('price', 'asc');
+            } elseif ($sort === 'price_desc') {
+                $query->orderBy('price', 'desc');
+            } else {
+                $query->latest();
+            }
         });
     }
 }

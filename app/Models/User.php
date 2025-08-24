@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -61,5 +63,22 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    protected function initials(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $name = $this->name;
+                $words = explode(' ', $name);
+                $initials = strtoupper(substr($words[0], 0, 1));
+
+                if (count($words) > 1) {
+                    $initials .= strtoupper(substr(end($words), 0, 1));
+                }
+
+                return $initials;
+            },
+        );
     }
 }

@@ -13,10 +13,14 @@ class CheckoutController extends Controller
 {
     public function index()
     {
-        $cartItems = \Cart::getContent();
-        if (\Cart::isEmpty()) {
-            return redirect()->route('catalog.index')->with('info', 'Your cart is empty.');
+        $selectedItemIds = session('selected_cart_items', []);
+        if (empty($selectedItemIds)) {
+            return redirect()->route('cart.index')->with('info', 'Pilih item terlebih dahulu.');
         }
+
+        // Ambil item hanya yang ID-nya ada di session
+        $cartItems = collect(\Cart::getContent())->whereIn('id', $selectedItemIds);
+
         return view('checkout.index', compact('cartItems'));
     }
 
@@ -86,9 +90,11 @@ class CheckoutController extends Controller
     {
         $order = Order::create([
             'user_id' => auth()->id(),
+            'recipient_name' => $request->name, // <-- TAMBAHKAN INI
             'total_price' => 0,
             'status' => 'unpaid',
-            'shipping_address' => $request->shipping_address . ' | Phone: ' . $request->phone,
+            'shipping_address' => $request->shipping_address,
+            'phone' => $request->phone,
         ]);
 
         $gross_amount = 0;
@@ -111,38 +117,20 @@ class CheckoutController extends Controller
     public function retryPayment(Order $order)
     {
         if ($order->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if ($order->status !== 'unpaid') {
-            return response()->json([
-                'status' => 'already_processed',
-                'message' => 'This order has already been processed.'
-            ]);
+            abort(403);
         }
 
         try {
-            // LOGIKA BARU: Verifikasi status menggunakan method kustom kita
-            $midtransStatus = $this->getMidtransStatus($order->id);
+            // Kita langsung panggil method manual kita yang baru
+            $snapToken = $this->getSnapTokenManually($order);
 
-            if (in_array($midtransStatus['transaction_status'], ['capture', 'settlement'])) {
-                $order->update(['status' => 'processing']);
-
-                return response()->json([
-                    'status' => 'paid_on_midtrans',
-                    'message' => 'Payment found on Midtrans. Updating status.'
-                ]);
-            }
-
-            // Jika belum lunas, lanjutkan proses pembuatan token baru
-            $params = $this->buildMidtransParametersFromOrder($order);
-            $snapToken = $this->requestSnapToken($params);
             $order->update(['snap_token' => $snapToken]);
 
             return response()->json(['status' => 'token_generated', 'snap_token' => $snapToken]);
+
         } catch (\Exception $e) {
-            Log::error('Retry Payment Failed for Order #' . $order->id, ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Could not initiate payment.'], 500);
+            Log::error("Retry Payment Failed for Order #{$order->id}: " . $e->getMessage());
+            return response()->json(['error' => 'Gagal membuat sesi pembayaran. Silakan hubungi dukungan.'], 500);
         }
     }
 
@@ -254,6 +242,72 @@ class CheckoutController extends Controller
             // Log jika token tidak ditemukan di respons
             Log::error('Midtrans Snap Token not found in response', ['response_body' => $body]);
             throw new \Exception('Snap Token not found in Midtrans response.');
+        }
+
+        return $body['token'];
+    }
+
+    private function getSnapTokenManually(Order $order): string
+    {
+        $order->load('user', 'items.product');
+
+        // Siapkan 'bahan masakan' (payload)
+        $item_details = [];
+        foreach ($order->items as $item) {
+            $item_details[] = [
+                'id'       => (string) $item->product_id,
+                'price'    => (int) ($item->price / 100),
+                'quantity' => (int) $item->quantity,
+                'name'     => $item->product->name,
+            ];
+        }
+
+        $recipientName = $order->recipient_name ?? $order->user->name;
+        $customer_name_parts = explode(' ', $recipientName, 2);
+        $phone = $order->phone ?? '081234567890'; // Fallback phone
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => (string) $order->id . '-' . time(), // Tambahkan timestamp untuk memastikan keunikan
+                'gross_amount' => (int) ($order->total_price / 100),
+            ],
+            'customer_details' => [
+                'first_name' => $customer_name_parts[0],
+                'last_name' => $customer_name_parts[1] ?? '',
+                'email' => $order->user->email,
+                'phone' => $phone,
+            ],
+            'item_details' => array_values($item_details),
+        ];
+
+        // Konfigurasi untuk request
+        $serverKey = config('midtrans.server_key');
+        $url = config('midtrans.is_production')
+            ? 'https://app.midtrans.com/snap/v1/transactions'
+            : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
+
+        Log::info('Manually Requesting Snap Token to Midtrans', ['params' => $params]);
+
+        // Kirim request menggunakan "kurir" andalan kita: Laravel HTTP
+        $response = Http::withOptions([
+            'verify' => config_path('ssl/cacert.pem'),
+        ])->withBasicAuth($serverKey, '')
+            ->withHeaders(['Accept' => 'application/json'])
+            ->post($url, $params);
+
+        if ($response->failed()) {
+            Log::error('Midtrans Manual API Request Failed', [
+                'status_code' => $response->status(),
+                'response_body' => $response->body()
+            ]);
+            throw new \Exception('Gagal berkomunikasi dengan Midtrans: ' . $response->body());
+        }
+
+        $body = $response->json();
+
+        if (empty($body['token'])) {
+            Log::error('Midtrans Snap Token not found in manual response', ['response_body' => $body]);
+            throw new \Exception('Token Snap tidak ditemukan dalam respons Midtrans.');
         }
 
         return $body['token'];

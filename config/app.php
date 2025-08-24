@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
 return [
@@ -128,6 +129,12 @@ return [
     'providers' => ServiceProvider::defaultProviders()->merge([
         // ...
         App\Providers\CartServiceProvider::class,
+        Darryldecode\Cart\CartServiceProvider::class,
+    ])->toArray(),
+
+    'aliases' => Facade::defaultAliases()->merge([
+        'Cart' => Darryldecode\Cart\Facades\CartFacade::class,
+
     ])->toArray(),
 
 ];

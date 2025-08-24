@@ -9,12 +9,26 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $orders = Auth::user()
-                      ->orders()
-                      ->with('items.product')
-                      ->latest()
-                      ->get();
+        $user = Auth::user();
 
-        return view('dashboard', compact('orders'));
+        // Ambil HANYA pesanan yang sedang aktif
+        $activeOrders = $user->orders()
+            ->whereIn('status', ['unpaid', 'processing', 'shipped'])
+            ->with('items.product.images')
+            ->latest()
+            ->take(3)
+            ->get();
+
+        // Hitung statistik seumur hidup
+        $stats = [
+            'total_spent' => $user->orders()->whereIn('status', ['processing', 'shipped', 'completed'])->sum('total_price'),
+            'total_orders' => $user->orders()->count(),
+            'total_items' => $user->orders()->withSum('items', 'quantity')->get()->sum('items_sum_quantity'),
+        ];
+
+        return view('dashboard', [
+            'activeOrders' => $activeOrders,
+            'stats' => $stats,
+        ]);
     }
 }
