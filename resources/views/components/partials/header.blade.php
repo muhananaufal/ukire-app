@@ -1,7 +1,6 @@
 @props(['atTop' => false])
 
-<header {{-- 1. EFEK GLASSMORPHISM YANG DISEMPURNAKAN:
-       Menggunakan `bg-white/80` dan `backdrop-blur-lg` untuk efek yang lebih jelas dan premium. --}}
+<header
     :class="{
         'bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80': atTop,
         'text-gray-900 bg-white/30 backdrop-blur-lg shadow-sm': !atTop
@@ -12,7 +11,7 @@
         <div class="flex justify-between items-center h-20">
             <div class="flex-shrink-0" style="z-index: 99;">
                 <a href="{{ route('home') }}" class="text-2xl font-bold tracking-tight text-gray-800">
-                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire.id" class="h-8" /> </a>
+                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire" class="h-8" /> </a>
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:space-x-8">
@@ -36,13 +35,12 @@
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
                 <a href="{{ route('cart.index') }}" class="relative p-2 rounded-full"
                     :class="{ 'text-gray-500 hover:text-gray-900': atTop, 'text-gray-900 hover:text-gray-500': !atTop }">
-                    {{-- 2. IKON KERANJANG DIPERBAIKI: Menambahkan path SVG yang hilang --}}
                     <svg class="h-6 w-6" fill="none" stroke-width="1.5" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z">
                         </path>
                     </svg>
-                    
+
                     @if (isset($cartCount) && $cartCount > 0)
                         <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-amber-500 ring-2"
                             :class="{ 'ring-white': atTop, 'ring-gray-900': !atTop }"></span>
@@ -53,7 +51,6 @@
                         :class="{ 'text-gray-500 hover:text-gray-900': atTop, 'text-gray-900 hover:text-gray-500': !atTop }"
                         class="text-sm font-medium transition-colors">Masuk</a>
 
-                    {{-- 3. TOMBOL ADAPTIF: Logika Anda sudah benar, ini hanya konfirmasi --}}
                     <a href="{{ route('register') }}"
                         :class="{
                             'bg-gray-900 text-white hover:bg-gray-700': atTop,
@@ -66,7 +63,11 @@
                     <div class="relative">
                         <button @click="profileDropdownOpen = !profileDropdownOpen"
                             class="flex items-center space-x-2 text-sm font-medium transition-colors"
-                            :class="{ 'text-gray-500 hover:text-gray-900': atTop, 'text-gray-900/80 hover:text-gray-500': !atTop }">
+                            :class="{
+                                'text-gray-500 hover:text-gray-900': atTop,
+                                'text-gray-900/80 hover:text-gray-500': !
+                                    atTop
+                            }">
                             <span>{{ Str::words(Auth::user()->name, 1, '') }}</span>
                             <svg class="h-4 w-4 transition-transform" :class="{ 'rotate-180': profileDropdownOpen }"
                                 fill="currentColor" viewBox="0 0 20 20">
@@ -85,7 +86,6 @@
                             class="absolute right-0 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                             x-cloak>
 
-                            {{-- 1. User Info Block --}}
                             <div class="px-4 py-3 border-b border-gray-200">
                                 <div class="flex items-center space-x-3">
                                     <div
@@ -100,7 +100,6 @@
                             </div>
 
                             <div class="py-1">
-                                {{-- 2. Menu Dashboard --}}
                                 <a href="{{ route('dashboard') }}"
                                     class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
@@ -110,11 +109,15 @@
                                     </svg>
                                     <span>Dashboard</span>
                                 </a>
-                                <a href="{{ route('order.history') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                                <a href="{{ route('order.history') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                                    </svg>
                                     <span>Riwayat Pesanan</span>
                                 </a>
-                                {{-- 3. Menu Profil --}}
                                 <a href="{{ route('profile.edit') }}"
                                     class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
@@ -125,10 +128,7 @@
                                     <span>Profil</span>
                                 </a>
                             </div>
-
                             <div class="border-t border-gray-100"></div>
-
-                            {{-- 4. Menu Logout --}}
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <a href="{{ route('logout') }}"
@@ -170,9 +170,9 @@
     <div x-show="mobileMenuOpen" x-transition:enter="duration-300 ease-out" x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100" x-transition:leave="duration-200 ease-in"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-        class="sm:hidden fixed inset-0 bg-white/30 backdrop-blur-lg shadow-sm z-40 pb-6">
+        class="sm:hidden fixed inset-0 bg-white/75 backdrop-blur-lg shadow-sm z-40 pb-6">
         <div class="flex flex-col h-full justify-between">
-            <div class="space-y-4 pt-20 text-center bg-white/30 backdrop-blur-lg shadow-sm">
+            <div class="space-y-4 pt-20 text-center bg-white/75 backdrop-blur-lg shadow-sm">
                 <a href="{{ route('catalog.index') }}"
                     class="block text-2xl font-bold text-gray-800 hover:text-amber-600">Katalog</a>
                 <a href="{{ route('static.page', 'about-us') }}"
@@ -180,7 +180,7 @@
                 <a href="{{ route('cart.index') }}"
                     class="block text-2xl font-bold text-gray-800 hover:text-amber-600">Keranjang</a>
             </div>
-            <div class="py-6 text-center bg-white/30 backdrop-blur-lg shadow-sm">
+            <div class="py-6 text-center bg-white/75 backdrop-blur-lg shadow-sm">
                 @guest
                     <div class="flex justify-center">
 
@@ -197,7 +197,8 @@
                         class="block text-2xl font-bold text-gray-800 hover:text-amber-600">Dashboard</a>
                     <a href="{{ route('profile.edit') }}"
                         class="block text-2xl font-bold text-gray-800 hover:text-amber-600 mt-4">Profil</a>
-                        <a href="{{ route('order.history') }}" class="block text-2xl font-bold text-gray-800 hover:text-amber-600 mt-4">Riwayat Pesanan</a>
+                    <a href="{{ route('order.history') }}"
+                        class="block text-2xl font-bold text-gray-800 hover:text-amber-600 mt-4">Riwayat Pesanan</a>
 
                     <div class="mt-8 flex justify-center">
                         <form method="POST" action="{{ route('logout') }}">

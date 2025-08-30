@@ -9,7 +9,6 @@ class InvoiceController extends Controller
 {
     public function download(Order $order)
     {
-        // Pastikan pengguna hanya bisa mengunduh fakturnya sendiri
         if ($order->user_id !== auth()->id()) {
             abort(403);
         }

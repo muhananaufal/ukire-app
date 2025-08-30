@@ -26,7 +26,6 @@ class OrderHistory extends Component
         $this->totalSpent = $user->orders()->whereIn('status', ['processing', 'shipped', 'completed'])->sum('total_price');
         $this->totalOrders = $user->orders()->count();
 
-        // Query untuk mencari kategori favorit berdasarkan jumlah item yang dibeli
         $this->favoriteCategory = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
@@ -72,10 +71,9 @@ class OrderHistory extends Component
     public function render()
     {
         $ordersQuery = Auth::user()->orders()
-            ->with('items') // Eager load untuk efisiensi
+            ->with('items')
             ->latest();
 
-        // Terapkan filter pencarian
         if ($this->search) {
             $ordersQuery->where(function ($query) {
                 $query->where('id', 'like', '%' . $this->search . '%')
@@ -85,15 +83,14 @@ class OrderHistory extends Component
             });
         }
 
-        // Terapkan filter status
         if ($this->statusFilter) {
             $ordersQuery->where('status', $this->statusFilter);
         }
 
-        // Terapkan filter tanggal
         if ($this->dateFrom) {
             $ordersQuery->whereDate('created_at', '>=', $this->dateFrom);
         }
+        
         if ($this->dateTo) {
             $ordersQuery->whereDate('created_at', '<=', $this->dateTo);
         }

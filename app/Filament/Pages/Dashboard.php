@@ -14,7 +14,6 @@ class Dashboard extends BaseDashboard
   public function getHeaderWidgets(): array
   {
     return [
-      // DashboardDateFilter::class, // Filter kita di header
     ];
   }
 

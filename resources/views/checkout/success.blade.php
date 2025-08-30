@@ -1,7 +1,6 @@
 <x-checkout-layout>
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div class="max-w-2xl mx-auto">
-            <!-- Header Halaman -->
             <div class="text-center" data-aos="zoom-in">
                 <svg class="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor">
@@ -14,16 +13,12 @@
                     Terima kasih! Pra-pesan Anda telah kami terima dan akan segera kami proses.
                 </p>
             </div>
-
-            <!-- WOW: Struk Nota Pembelian -->
             <div class="mt-12 bg-white border border-gray-200 rounded-lg shadow-sm" data-aos="fade-up"
                 data-aos-delay="200">
-                <!-- Header Struk -->
                 <div class="p-6 sm:p-8 border-b border-gray-200 flex justify-between items-start">
                     <div>
                         <a href="{{ route('home') }}">
-                            {{-- Menggunakan logo dengan teks untuk formalitas --}}
-                            <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire.id" class="h-8" />
+                            <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire" class="h-8" />
                         </a>
                         <p class="mt-4 text-sm text-gray-500">Struk untuk Pesanan #{{ $order->id }}</p>
                     </div>
@@ -38,7 +33,6 @@
                     </div>
                 </div>
 
-                <!-- Detail Item -->
                 <div class="p-6 sm:p-8">
                     <div class="flow-root">
                         <ul role="list" class="-my-4 divide-y divide-gray-200">
@@ -66,7 +60,6 @@
                     </div>
                 </div>
 
-                <!-- Total Harga -->
                 <div class="border-t border-gray-200 p-6 sm:p-8">
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between">
@@ -87,15 +80,20 @@
                 </div>
             </div>
 
-            <!-- Tombol Aksi -->
             <div class="mt-10 text-center ">
                 <a href="{{ route('invoice.download', $order) }}"
-                class="text-sm font-medium text-amber-600 hover:text-amber-500 block mb-5">Unduh
-                Faktur (PDF)</a>
+                    class="text-sm font-medium text-amber-600 hover:text-amber-500 block mb-5">Unduh
+                    Faktur (PDF)</a>
                 <a href="{{ route('dashboard') }}"
                     class="inline-block bg-gray-900 text-white font-bold py-3 px-10 rounded-lg text-lg hover:bg-gray-700 transition-colors">
                     Lacak Pesanan di Dashboard
                 </a>
+                <p class="mt-6">
+                    <a href="{{ route('catalog.index') }}"
+                        class="text-sm font-medium text-gray-600 hover:text-amber-600 transition-colors">
+                        &larr; Kembali Berbelanja
+                    </a>
+                </p>
             </div>
         </div>
     </div>

@@ -1,6 +1,5 @@
 <x-guest-layout>
     <div class="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
-        <!-- Kolom Kiri: Gambar & Inspirasi -->
         <div class="hidden lg:block relative">
             <div class="absolute inset-0">
                 <img src="https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?q=80&w=2080"
@@ -15,21 +14,17 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: Formulir Pendaftaran -->
         <div class="flex flex-col justify-center items-center p-6 sm:p-12 lg:p-16 bg-white">
             <div class="w-full max-w-md">
                 <a href="/" class="inline-block mb-8">
-                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire.id" class="h-8" />
+                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire" class="h-8" />
                 </a>
-
                 <h1 class="text-3xl font-bold text-gray-900">Buat Akun Baru</h1>
-                <p class="mt-2 text-gray-600">Mulai perjalanan Anda bersama Ukire.id.</p>
-
-                <!-- Social Login -->
+                <p class="mt-2 text-gray-600">Mulai perjalanan Anda bersama Ukire.</p>
                 <div class="mt-8">
                     <a href="{{ route('login.google') }}"
                         class="w-full flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" class="h-5 w-5 mr-3"
+                        <svg xmlns="https://www.w3.org/2000/svg" x="0px" y="0px" class="h-5 w-5 mr-3"
                             viewBox="0 0 48 48">
                             <path fill="#FFC107"
                                 d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
@@ -56,27 +51,23 @@
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
                     <div class="space-y-6">
-                        <!-- Nama Lengkap -->
                         <div>
                             <x-forms.floating-input type="text" name="name" label="Nama Lengkap" :value="old('name')"
                                 required autofocus />
                             <x-input-error :messages="$errors->get('name')" class="mt-2" />
                         </div>
 
-                        <!-- Alamat Email -->
                         <div>
                             <x-forms.floating-input type="email" name="email" label="Alamat Email" :value="old('email')"
                                 required />
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                         </div>
 
-                        <!-- Kata Sandi -->
                         <div>
                             <x-forms.floating-input type="password" name="password" label="Kata Sandi" required />
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
 
-                        <!-- Konfirmasi Kata Sandi -->
                         <div>
                             <x-forms.floating-input type="password" name="password_confirmation"
                                 label="Konfirmasi Kata Sandi" required />

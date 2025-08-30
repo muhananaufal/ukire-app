@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
-use App\Filament\Widgets\ProductCategoryPieChart; // <-- 1. Tambahkan ini
+use App\Filament\Widgets\ProductCategoryPieChart;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -24,7 +24,6 @@ class CategoryResource extends Resource
 
     public static function form(Form $form): Form
     {
-        // Form ini sudah cukup baik, kita tidak perlu mengubahnya
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
@@ -49,42 +48,26 @@ class CategoryResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-
-                // ===================================================================
-                // WOW #1: Tampilkan jumlah produk di setiap kategori
-                // ===================================================================
                 Tables\Columns\TextColumn::make('products_count')
                     ->counts('products')
                     ->label('Total Products')
                     ->sortable(),
-                // ===================================================================
-
-                // ===================================================================
-                // WOW #2: Tampilkan total pendapatan dari setiap kategori
-                // ===================================================================
                 Tables\Columns\TextColumn::make('total_revenue')
                     ->label('Total Revenue')
                     ->money('IDR', divideBy: 100)
                     ->getStateUsing(function (Model $record) {
-                        // ===================================================================
-                        // GANTI QUERY YANG LAMA DENGAN QUERY BARU YANG BENAR & EFISIEN INI
-                        // ===================================================================
                         return \App\Models\OrderItem::query()
                             ->whereHas('product', fn($query) => $query->where('category_id', $record->id))
                             ->whereHas('order', fn($query) => $query->whereIn('status', ['processing', 'shipped', 'completed']))
-                            ->sum(DB::raw('price * quantity')); // Menjumlahkan total (harga x kuantitas)
-                        // ===================================================================
+                            ->sum(DB::raw('price * quantity'));
                     })
                     ->sortable(),
-                // ===================================================================
-
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Updated')
                     ->since()
                     ->sortable(),
             ])
             ->filters([
-                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -99,7 +82,6 @@ class CategoryResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
@@ -112,9 +94,6 @@ class CategoryResource extends Resource
         ];
     }
 
-    // ===================================================================
-    // WOW #3: Tampilkan Pie Chart di atas tabel
-    // ===================================================================
     public static function getWidgets(): array
     {
         return [

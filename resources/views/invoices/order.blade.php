@@ -70,7 +70,6 @@
             border-top: 2px solid #333;
             font-size: 18px;
             color: #c27803;
-            /* A slightly darker, more premium amber */
         }
 
         .footer {
@@ -103,7 +102,6 @@
 
 <body>
     <div class="invoice-container">
-        <!-- Header -->
         <table class="header-table">
             <tr>
                 <td class="brand-logo">
@@ -118,7 +116,6 @@
             </tr>
         </table>
 
-        <!-- Informasi Pelanggan & Pengiriman -->
         <table class="details-table">
             <tr>
                 <td width="50%">
@@ -135,7 +132,6 @@
             </tr>
         </table>
 
-        <!-- Daftar Item -->
         <table class="items-table">
             <tr class="heading">
                 <td class="text-left">Produk</td>
@@ -154,7 +150,6 @@
             @endforeach
         </table>
 
-        <!-- Ringkasan Total -->
         <table class="summary-table">
             <tr>
                 <td class="text-right">Subtotal</td>
@@ -171,9 +166,8 @@
             </tr>
         </table>
 
-        <!-- Footer Faktur -->
         <div class="footer">
-            <p>Terima kasih telah berbelanja di Ukire.id!</p>
+            <p>Terima kasih telah berbelanja di Ukire!</p>
             <p>Jika ada pertanyaan mengenai faktur ini, silakan hubungi layanan pelanggan kami.</p>
         </div>
     </div>

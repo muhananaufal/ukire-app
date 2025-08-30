@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Filament\Resources\OrderResource\RelationManagers\ItemsRelationManager;
 use App\Models\Order;
 use Filament\Forms;
@@ -13,9 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
 class OrderResource extends Resource
@@ -27,7 +24,6 @@ class OrderResource extends Resource
 
     public static bool $isGloballySearchable = true;
 
-    // Kita akan mencari berdasarkan ID Pesanan
     public static function getGloballySearchableAttributes(): array
     {
         return ['id', 'user.name'];
@@ -72,7 +68,7 @@ class OrderResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Customer Account') // Kita beri label lebih jelas
+                    ->label('Customer Account')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('recipient_name')
@@ -82,20 +78,16 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Customer Phone')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true), // Sembunyikan defaultnya agar tabel tidak terlalu ramai
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('shipping_address')
                     ->label('Shipping Address')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true), // Sembunyikan defaultnya agar tabel tidak terlalu ramai
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('total_price')
                     ->money('IDR', divideBy: 100)
                     ->sortable(),
-
-                // ===================================================================
-                // INI ADALAH BAGIAN YANG DIPERBAIKI
-                // ===================================================================
                 Tables\Columns\TextColumn::make('status')
-                    ->badge() // <-- Ini akan mengubahnya menjadi badge
+                    ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'unpaid' => 'warning',
                         'processing' => 'gray',
@@ -104,22 +96,18 @@ class OrderResource extends Resource
                         'cancelled' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn(string $state): string => Str::ucfirst($state)) // <-- Membuat huruf pertama kapital
+                    ->formatStateUsing(fn(string $state): string => Str::ucfirst($state))
                     ->searchable()
                     ->sortable(),
-                // ===================================================================
-
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
             ])
             ->filters([
-                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
-                // Anda juga bisa menambahkan ViewAction jika perlu
                 Action::make('Mark as Shipped')
                     ->action(function (Order $record) {
                         $record->update(['status' => 'shipped']);
@@ -130,7 +118,7 @@ class OrderResource extends Resource
                     })
                     ->icon('heroicon-o-truck')
                     ->color('info')
-                    ->requiresConfirmation() // Minta konfirmasi sebelum menjalankan
+                    ->requiresConfirmation()
                     ->visible(fn(Order $record): bool => $record->status === 'processing'),
                 Action::make('Mark as Completed')
                     ->action(function (Order $record) {
@@ -142,8 +130,8 @@ class OrderResource extends Resource
                     })
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->requiresConfirmation() // Minta konfirmasi sebelum menjalankan
-                    ->visible(fn(Order $record): bool => $record->status === 'shipped'), // Hanya tampil jika status 'processing'
+                    ->requiresConfirmation()
+                    ->visible(fn(Order $record): bool => $record->status === 'shipped'),
 
             ])
             ->bulkActions([

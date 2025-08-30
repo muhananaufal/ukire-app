@@ -20,7 +20,7 @@ class CartController extends Controller
         \Cart::add([
             'id' => $product->id,
             'name' => $product->name,
-            'price' => $product->price / 100, // Harga per item dalam satuan normal
+            'price' => $product->price / 100,
             'quantity' => $request->quantity ?? 1,
             'attributes' => [
                 'image' => $product->images->first()?->image_path,
@@ -46,7 +46,6 @@ class CartController extends Controller
     public function destroy($itemId)
     {
         \Cart::remove($itemId);
-
         return redirect()->route('cart.index')->with('success', 'Item removed from cart successfully!');
     }
 }

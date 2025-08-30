@@ -20,7 +20,7 @@
                   Menghadirkan kehangatan dan karakter sejati dari kayu ke dalam setiap rumah di Indonesia.
               </p>
               <p class="mt-6 text-lg text-gray-600">
-                  Ukire.id lahir dari kecintaan terhadap keindahan alam dan pengerjaan tangan yang teliti. Kami percaya setiap potongan kayu memiliki cerita, dan tugas kami adalah mengubahnya menjadi karya fungsional yang akan menjadi bagian dari cerita Anda selama beberapa generasi.
+                  Ukire lahir dari kecintaan terhadap keindahan alam dan pengerjaan tangan yang teliti. Kami percaya setiap potongan kayu memiliki cerita, dan tugas kami adalah mengubahnya menjadi karya fungsional yang akan menjadi bagian dari cerita Anda selama beberapa generasi.
               </p>
           </div>
       </div>
@@ -36,7 +36,7 @@
                   <h2 class="text-base font-semibold tracking-wider text-amber-600 uppercase">Perjalanan Kami</h2>
                   <p class="mt-4 text-3xl font-extrabold tracking-tight text-gray-900">Berawal dari Bengkel Sederhana</p>
                   <p class="mt-6 text-lg text-gray-600">
-                      Didirikan di jantung kota pengrajin kayu, Ukire.id dimulai dengan satu visi: untuk melestarikan seni pengerjaan kayu tradisional sambil memberinya sentuhan desain modern yang relevan. Sistem pra-pesan kami adalah komitmen kami pada kualitas, memastikan setiap karya dibuat dengan waktu dan perhatian yang layak, bukan dengan kecepatan produksi massal.
+                      Didirikan di jantung kota pengrajin kayu, Ukire dimulai dengan satu visi: untuk melestarikan seni pengerjaan kayu tradisional sambil memberinya sentuhan desain modern yang relevan. Sistem pra-pesan kami adalah komitmen kami pada kualitas, memastikan setiap karya dibuat dengan waktu dan perhatian yang layak, bukan dengan kecepatan produksi massal.
                   </p>
               </div>
           </div>

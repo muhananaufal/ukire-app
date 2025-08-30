@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            // Tambahkan kolom 'recipient_name' setelah 'user_id'
             $table->string('recipient_name')->after('user_id');
         });
     }

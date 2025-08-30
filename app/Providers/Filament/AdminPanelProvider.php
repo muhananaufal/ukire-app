@@ -6,7 +6,6 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\App\Filament\WidgetsResource\Widgets\StatsOverview;
 use App\Filament\Widgets\LatestOrders;
 use App\Filament\Widgets\ProductCategoryPieChart;
-use App\Filament\Widgets\SalesChart2;
 use App\Filament\Widgets\SalesChart;
 use App\Filament\Widgets\StatsOverview as WidgetsStatsOverview;
 use Filament\Http\Middleware\Authenticate;

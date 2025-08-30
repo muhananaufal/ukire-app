@@ -15,7 +15,7 @@
         <div class="flex flex-col justify-center items-center p-6 sm:p-12 lg:p-16 bg-white">
             <div class="w-full max-w-md">
                 <a href="/" class="inline-block mb-8">
-                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire.id" class="h-8" />
+                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire" class="h-8" />
                 </a>
 
                 <h1 class="text-3xl font-bold text-gray-900">Lupa Kata Sandi?</h1>

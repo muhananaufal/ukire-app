@@ -68,8 +68,6 @@ class ProductResource extends Resource
                         Forms\Components\TextInput::make('material')->required(),
                         Forms\Components\TextInput::make('dimensions')->required(),
                         Forms\Components\TextInput::make('preorder_estimate')->required(),
-
-                        // WOW #1: Tambahkan Status Produk (Published / Draft)
                         Forms\Components\Toggle::make('is_published')
                             ->label('Published')
                             ->helperText('Jika nonaktif, produk akan disembunyikan dari katalog.')
@@ -94,12 +92,8 @@ class ProductResource extends Resource
                     ->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('price')
                     ->money('IDR', divideBy: 100)->sortable(),
-
-                // WOW #2: Tampilkan Status Published / Draft dengan Toggle
                 Tables\Columns\ToggleColumn::make('is_published')
                     ->label('Published'),
-
-                // WOW #3: Tampilkan berapa kali produk ini dipesan
                 Tables\Columns\TextColumn::make('order_items_count')
                     ->counts('orderItems')
                     ->label('Times Ordered')
@@ -116,14 +110,6 @@ class ProductResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-
-                // WOW #4: Aksi untuk duplikat produk
-                Tables\Actions\ReplicateAction::make()
-                    ->label('Duplicate')
-                    ->excludeAttributes(['slug']) // Slug harus unik, jadi kita kosongkan
-                    ->before(function (Tables\Actions\ReplicateAction $action, Model $record) {
-                        $action->fillForm($record->toArray());
-                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -140,7 +126,6 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 

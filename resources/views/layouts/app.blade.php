@@ -1,3 +1,7 @@
+<?php
+use Illuminate\Support\Facades\View;
+?>
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 
@@ -14,6 +18,8 @@
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -35,12 +41,11 @@
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
         AOS.init({
-            duration: 800, // Durasi animasi dalam milidetik
-            once: true, // Animasi hanya berjalan sekali
+            duration: 800,
+            once: true,
         });
 
         const swiper = new Swiper('.swiper-container', {
-            // Opsi yang sudah ada
             loop: true,
             autoplay: {
                 delay: 5000,
@@ -53,16 +58,11 @@
                 clickable: true,
             },
 
-            // --> TAMBAHKAN BAGIAN INI <--
-            // Ini adalah "sinyal" yang kita tunggu
             on: {
                 init: function() {
-                    // 'this.el' merujuk ke elemen .swiper-container
-                    // Saat Swiper siap, kita ubah style-nya menjadi 'visible'
                     this.el.style.visibility = 'visible';
                 },
             },
-            // --> SAMPAI SINI <--
         });
     </script>
     <script>
@@ -102,7 +102,6 @@
                     if (data.status === 'token_generated') {
                         snap.pay(data.snap_token, {
                             onSuccess: function(result) {
-                                // INI DIA SOLUSINYA: Gunakan URL sukses yang sudah benar
                                 window.location.href = successUrl;
                             },
                             onPending: function(result) {
@@ -130,12 +129,15 @@
         }
     </script>
 
-    @if (!request()->is('admin*') && !request()->routeIs(['login', 'register', 'password.request']))
-        <a href="https://wa.me/{{ config('ukire.whatsapp_number') }}?text={{ urlencode('Halo Ukire.id, saya ingin bertanya...') }}"
+    @if (
+        !request()->is('admin*') &&
+            !request()->routeIs(['login', 'register', 'password.request']) &&
+            !View::hasSection('hide_floating_whatsapp'))
+        <a href="https://wa.me/{{ config('ukire.whatsapp_number') }}?text={{ urlencode('Halo Ukire, saya ingin bertanya...') }}"
             target="_blank"
             class="fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:ring-offset-2 focus:bg-slate-800 hover:outline-none hover:ring-2 hover:ring-green-500 hover:ring-offset-2 transition-transform duration-300 hover:scale-110"
             aria-label="Chat via WhatsApp">
-            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48"
+            <svg xmlns="https://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48"
                 class="h-8 w-8">
                 <path fill="#fff"
                     d="M4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5c5.1,0,9.8,2,13.4,5.6	C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19c0,0,0,0,0,0h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3z">

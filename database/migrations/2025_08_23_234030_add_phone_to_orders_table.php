@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            // Tambahkan kolom 'phone' setelah kolom 'shipping_address'
             $table->string('phone')->nullable()->after('shipping_address');
         });
     }

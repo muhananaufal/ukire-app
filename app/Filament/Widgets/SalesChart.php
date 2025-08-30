@@ -10,7 +10,7 @@ use Livewire\Attributes\On;
 class SalesChart extends ChartWidget
 {
     protected static ?string $heading = 'Penjualan Minggu Ini';
-    protected static ?int $sort = 2; // Urutan widget di dashboard
+    protected static ?int $sort = 2;
 
     protected int | string | array $columnSpan = 'half';
     protected static string $className = 'h-96 flex flex-col';
@@ -31,11 +31,11 @@ class SalesChart extends ChartWidget
             'mtd' => [$now->copy()->startOfMonth(), $now],
             'lm' => [$now->copy()->subMonth()->startOfMonth(), $now->copy()->subMonth()->endOfMonth()],
             'today' => [$now->copy()->startOfDay(), $now],
-            default => [$now->copy()->subDays(6), $now], // '7d'
+            default => [$now->copy()->subDays(6), $now],
         };
 
         $data = Order::query()
-            ->where('status', '!=', 'cancelled') // Hanya hitung order yang tidak dibatalkan
+            ->where('status', '!=', 'cancelled')
             ->whereBetween('created_at', [Carbon::now()->subDays(6), Carbon::now()])
             ->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
             ->groupBy('date')
@@ -43,17 +43,15 @@ class SalesChart extends ChartWidget
             ->get()
             ->pluck('total', 'date');
 
-        // Siapkan label untuk 7 hari terakhir
         $labels = [];
         for ($i = 6; $i >= 0; $i--) {
-            $labels[] = Carbon::now()->subDays($i)->format('D, M j'); // Format: Sun, Aug 18
+            $labels[] = Carbon::now()->subDays($i)->format('D, M j');
         }
 
-        // Siapkan data, isi dengan 0 jika tidak ada penjualan di hari itu
         $salesData = [];
         foreach ($labels as $label) {
             $dateKey = Carbon::parse($label)->format('Y-m-d');
-            $salesData[] = ($data[$dateKey] ?? 0) / 100; // Konversi dari sen ke Rupiah
+            $salesData[] = ($data[$dateKey] ?? 0) / 100;
         }
 
         return [
@@ -72,6 +70,6 @@ class SalesChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'line'; // Tipe grafik garis untuk tren
+        return 'line';
     }
 }

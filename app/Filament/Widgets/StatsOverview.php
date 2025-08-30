@@ -5,7 +5,6 @@ namespace App\Filament\Widgets;
 use App\Filament\Resources\OrderResource;
 use App\Filament\Resources\UserResource;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -26,12 +25,10 @@ class StatsOverview extends BaseWidget
     {
         [$startDate, $endDate, $previousStartDate, $previousEndDate] = $this->resolveDateRange($this->filter);
 
-        // Data Periode Saat Ini
         $currentRevenue = Order::whereIn('status', ['processing', 'shipped', 'completed'])->whereBetween('created_at', [$startDate, $endDate])->sum('total_price');
         $currentCustomers = User::where('role', 'customer')->whereBetween('created_at', [$startDate, $endDate])->count();
         $currentOrders = Order::whereBetween('created_at', [$startDate, $endDate])->count();
 
-        // Data Periode Sebelumnya
         $previousRevenue = Order::whereIn('status', ['processing', 'shipped', 'completed'])->whereBetween('created_at', [$previousStartDate, $previousEndDate])->sum('total_price');
         $previousCustomers = User::where('role', 'customer')->whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
         $previousOrders = Order::whereBetween('created_at', [$previousStartDate, $previousEndDate])->count();
@@ -39,7 +36,6 @@ class StatsOverview extends BaseWidget
         return [
             $this->createStat('Pendapatan Total', $currentRevenue, $previousRevenue, isCurrency: true),
             $this->createStat('Pelanggan Baru', $currentCustomers, $previousCustomers)->url(UserResource::getUrl('index')),
-
             $this->createStat('Pesanan Baru', $currentOrders, $previousOrders)->url(OrderResource::getUrl('index', ['tableFilters' => ['created_at' => ['created_from' => now()->startOfDay(), 'created_until' => now()->endOfDay()]]])),
         ];
     }

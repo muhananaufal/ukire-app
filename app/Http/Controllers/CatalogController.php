@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Http\Request;
 
 class CatalogController extends Controller
 {
@@ -25,10 +24,8 @@ class CatalogController extends Controller
 
     public function show(Product $product)
     {
-        // Eager load relasi untuk produk utama
         $product->load(['category', 'images']);
 
-        // Ambil produk terkait: produk lain dari kategori yang sama, kecuali produk saat ini
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_published', true)

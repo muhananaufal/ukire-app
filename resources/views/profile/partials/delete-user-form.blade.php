@@ -8,11 +8,9 @@
         </p>
     </header>
 
-    <button 
-        x-data=""
-        x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
-        class="inline-flex items-center justify-center rounded-md bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 transition-colors"
-    >Hapus Akun</button>
+    <button x-data="" x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
+        class="inline-flex items-center justify-center rounded-md bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 transition-colors">Hapus
+        Akun</button>
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.destroy') }}" class="p-6">
@@ -28,7 +26,6 @@
             </p>
 
             <div class="mt-6">
-                {{-- Menggunakan floating input di dalam modal --}}
                 <x-forms.floating-input name="password" label="Kata Sandi" type="password" required />
                 <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
             </div>
@@ -38,7 +35,8 @@
                     Batal
                 </button>
 
-                <button type="submit" class="ms-3 inline-flex items-center justify-center rounded-md bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 transition-colors">
+                <button type="submit"
+                    class="ms-3 inline-flex items-center justify-center rounded-md bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 transition-colors">
                     Hapus Akun
                 </button>
             </div>

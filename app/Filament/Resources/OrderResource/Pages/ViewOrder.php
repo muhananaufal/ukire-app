@@ -18,7 +18,7 @@ class ViewOrder extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(), // Tombol "Edit" di pojok kanan atas
+            Actions\EditAction::make(),
         ];
     }
 
@@ -27,7 +27,6 @@ class ViewOrder extends ViewRecord
         return $infolist
             ->schema([
                 Grid::make(3)->schema([
-                    // Kolom Kiri: Detail Pesanan
                     Section::make('Order Details')
                         ->schema([
                             TextEntry::make('id')->label('Order ID'),
@@ -47,8 +46,7 @@ class ViewOrder extends ViewRecord
                                 ->money('IDR', divideBy: 100),
                         ])->columnSpan(1),
 
-                    // Kolom Kanan: Detail Pelanggan & Pengiriman
-                    Section::make('Customer & Shipping')
+                        Section::make('Customer & Shipping')
                         ->schema([
                             TextEntry::make('user.name')->label('Customer Account'),
                             TextEntry::make('user.email')->label('Customer Email'),
@@ -57,7 +55,6 @@ class ViewOrder extends ViewRecord
                             TextEntry::make('phone')
                                 ->label('Recipient Phone')
                                 ->icon('heroicon-o-phone')
-                                // Logika baru yang lebih aman
                                 ->url(function (?string $state): ?string {
                                     if (empty($state)) {
                                         return null;
@@ -68,10 +65,9 @@ class ViewOrder extends ViewRecord
                                 ->label('Recipient Address'),
                         ])->columnSpan(2),
                 ]),
-                // Bagian Bawah: Item Pesanan
+
                 Section::make('Order Items')
                     ->schema([
-                        // Ini adalah cara menampilkan tabel relasi di dalam Infolist
                         \Filament\Infolists\Components\RepeatableEntry::make('items')
                             ->hiddenLabel()
                             ->schema([

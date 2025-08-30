@@ -20,7 +20,7 @@ class LatestOrders extends BaseWidget
     {
         return $table
             ->query(
-                Order::query()->latest()->limit(5) // Ambil 5 pesanan terbaru
+                Order::query()->latest()->limit(5)
             )
             ->columns([
                 Tables\Columns\TextColumn::make('id')
@@ -50,7 +50,6 @@ class LatestOrders extends BaseWidget
                     ->sortable()
             ])
             ->actions([
-                // Tambahkan tombol untuk langsung melihat detail order
                 Tables\Actions\Action::make('Detail')
                     ->url(fn(Order $record): string => OrderResource::getUrl('edit', ['record' => $record])),
             ]);

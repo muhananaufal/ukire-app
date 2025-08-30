@@ -35,7 +35,7 @@ class OrderStatus extends Component
      */
     public function __construct(string $status)
     {
-        $this->status = $status; // <-- Kita definisikan secara eksplisit
+        $this->status = $status;
 
         match ($this->status) {
             'unpaid' => [$this->bgColor, $this->textColor] = ['bg-yellow-100', 'text-yellow-800'],

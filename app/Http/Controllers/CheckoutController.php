@@ -5,20 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http; // <-- PENTING: Gunakan HTTP Client bawaan Laravel
-use Illuminate\Support\Facades\Log;  // <-- PENTING: Gunakan Logger bawaan Laravel
-use Midtrans\Transaction;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
+
     public function index()
     {
         $selectedItemIds = session('selected_cart_items', []);
         if (empty($selectedItemIds)) {
-            return redirect()->route('cart.index')->with('info', 'Pilih item terlebih dahulu.');
+            return redirect()->route('cart.index')->with('info', 'Pilih item di keranjang terlebih dahulu.');
         }
 
-        // Ambil item hanya yang ID-nya ada di session
         $cartItems = collect(\Cart::getContent())->whereIn('id', $selectedItemIds);
 
         return view('checkout.index', compact('cartItems'));
@@ -32,88 +31,52 @@ class CheckoutController extends Controller
             'phone' => 'required|string|max:20',
         ]);
 
-        $cartItems = \Cart::getContent();
+        $selectedItemIds = session('selected_cart_items', []);
+        $cartItems = collect(\Cart::getContent())->whereIn('id', $selectedItemIds);
+
         if ($cartItems->isEmpty()) {
-            return redirect()->route('catalog.index');
+            return redirect()->route('cart.index')->with('info', 'Tidak ada item yang dipilih untuk checkout.');
         }
 
-        // Mulai transaksi database yang aman
         DB::beginTransaction();
         try {
-            // Buat order dan item-nya terlebih dahulu
-            $order = $this->createOrder($request, $cartItems);
+            $gross_amount = $cartItems->sum(fn($item) => $item->price * $item->quantity);
 
-            // Siapkan parameter untuk Midtrans
-            $params = $this->buildMidtransParametersFromOrder($order);
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'recipient_name' => $request->name,
+                'total_price' => $gross_amount * 100,
+                'status' => 'unpaid',
+                'shipping_address' => $request->shipping_address,
+                'phone' => preg_replace('/[^0-9]/', '', $request->phone),
+            ]);
 
-            // Dapatkan Snap Token menggunakan method baru yang aman
-            $snapToken = $this->requestSnapToken($params);
+            foreach ($cartItems as $item) {
+                $order->items()->create([
+                    'product_id' => $item->id,
+                    'quantity' => (int) $item->quantity,
+                    'price' => (int) $item->price * 100,
+                ]);
+            }
 
-            // Update order dengan Snap Token
+            $snapToken = $this->getSnapTokenForOrder($order);
             $order->update(['snap_token' => $snapToken]);
 
-            // Jika semua berhasil, commit transaksi dan bersihkan keranjang
             DB::commit();
-            \Cart::clear();
+
+            foreach ($selectedItemIds as $itemId) {
+                \Cart::remove($itemId);
+            }
+            session()->forget('selected_cart_items');
 
             return view('checkout.payment', compact('snapToken', 'order'));
         } catch (\Exception $e) {
-            // Jika terjadi error di titik mana pun, batalkan semua operasi database
             DB::rollBack();
-
-            // Catat error yang detail untuk developer
-            Log::error('Checkout Failed', [
-                'error_message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            // Tampilkan pesan yang ramah ke pengguna
-            return redirect()->back()->with('error', 'We are sorry, but we could not process your order at this time. Please try again later.');
+            Log::error("Checkout Store Failed: " . $e->getMessage());
+            return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.');
         }
     }
 
-    public function success(Order $order)
-    {
-        if ($order->user_id !== auth()->id()) {
-            abort(403);
-        }
-        return view('checkout.success', compact('order'));
-    }
-
-    /**
-     * Method privat untuk membuat Order dan OrderItems.
-     * Dibuat terpisah agar kode lebih bersih.
-     */
-    private function createOrder(Request $request, $cartItems): Order
-    {
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'recipient_name' => $request->name, // <-- TAMBAHKAN INI
-            'total_price' => 0,
-            'status' => 'unpaid',
-            'shipping_address' => $request->shipping_address,
-            'phone' => $request->phone,
-        ]);
-
-        $gross_amount = 0;
-        foreach ($cartItems as $item) {
-            $order->items()->create([
-                'product_id' => $item->id,
-                'quantity' => (int) $item->quantity,
-                'price' => (int) $item->price * 100,
-            ]);
-            $gross_amount += (int) $item->price * (int) $item->quantity;
-        }
-
-        $order->update(['total_price' => $gross_amount * 100]);
-        return $order;
-    }
-
-    /**
-     * Method baru untuk menangani permintaan pembayaran ulang.
-     */
     public function retryPayment(Order $order)
     {
         if ($order->user_id !== auth()->id()) {
@@ -121,137 +84,19 @@ class CheckoutController extends Controller
         }
 
         try {
-            // Kita langsung panggil method manual kita yang baru
-            $snapToken = $this->getSnapTokenManually($order);
-
+            $snapToken = $this->getSnapTokenForOrder($order);
             $order->update(['snap_token' => $snapToken]);
-
             return response()->json(['status' => 'token_generated', 'snap_token' => $snapToken]);
-
         } catch (\Exception $e) {
             Log::error("Retry Payment Failed for Order #{$order->id}: " . $e->getMessage());
             return response()->json(['error' => 'Gagal membuat sesi pembayaran. Silakan hubungi dukungan.'], 500);
         }
     }
 
-    /**
-     * Method kustom baru untuk memeriksa status transaksi langsung ke API Midtrans.
-     *
-     * @param string|int $orderId
-     * @return array
-     * @throws \Exception
-     */
-    private function getMidtransStatus($orderId): array
-    {
-        $serverKey = config('midtrans.server_key');
-        $url = config('midtrans.is_production')
-            ? "https://api.midtrans.com/v2/{$orderId}/status"
-            : "https://api.sandbox.midtrans.com/v2/{$orderId}/status";
-
-        $response = Http::withOptions([
-            'verify' => config_path('ssl/cacert.pem'),
-        ])->withBasicAuth($serverKey, '')
-            ->withHeaders(['Accept' => 'application/json'])
-            ->get($url);
-
-        if ($response->failed()) {
-            Log::error('Midtrans Get Status Failed', [
-                'order_id' => $orderId,
-                'status_code' => $response->status(),
-                'response_body' => $response->body()
-            ]);
-            throw new \Exception('Failed to get transaction status from Midtrans.');
-        }
-
-        return $response->json();
-    }
-
-    /**
-     * Method privat untuk membangun parameter yang akan dikirim ke Midtrans.
-     */
-    private function buildMidtransParametersFromOrder(Order $order): array
-    {
-        $order->load('user', 'items.product'); // Pastikan semua relasi termuat
-
-        $item_details = [];
-        foreach ($order->items as $item) {
-            $item_details[] = [
-                'id'       => (string) $item->product_id,
-                'price'    => (int) ($item->price / 100),
-                'quantity' => (int) $item->quantity,
-                'name'     => $item->product->name,
-            ];
-        }
-
-        $customer_name_parts = explode(' ', $order->user->name, 2);
-
-        return [
-            'transaction_details' => [
-                'order_id' => (string) $order->id,
-                'gross_amount' => (int) ($order->total_price / 100),
-            ],
-            'customer_details' => [
-                'first_name' => $customer_name_parts[0],
-                'last_name' => $customer_name_parts[1] ?? '',
-                'email' => $order->user->email,
-                'phone' => preg_replace('/[^0-9]/', '', explode('| Phone: ', $order->shipping_address)[1] ?? ''),
-            ],
-            'item_details' => $item_details,
-        ];
-    }
-
-    /**
-     * Method privat untuk berkomunikasi langsung dengan API Midtrans.
-     * Ini adalah inti dari error handling kita.
-     */
-    private function requestSnapToken(array $params): string
-    {
-        $serverKey = config('midtrans.server_key');
-        $url = config('midtrans.is_production')
-            ? 'https://app.midtrans.com/snap/v1/transactions'
-            : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
-
-        // Log data yang akan kita kirim
-        Log::info('Requesting Snap Token to Midtrans', ['params' => $params]);
-
-        $certificatePath = config('filesystems.certificate_path');
-
-        $response = Http::withOptions([
-            'verify' => $certificatePath,
-        ])->withBasicAuth($serverKey, '')
-            ->withHeaders(['Accept' => 'application/json'])
-            ->post($url, $params);
-
-        // Jika respons GAGAL (status code bukan 2xx)
-        if ($response->failed()) {
-            // Log respons error yang sebenarnya dari Midtrans
-            Log::error('Midtrans API Request Failed', [
-                'status_code' => $response->status(),
-                'response_body' => $response->body()
-            ]);
-            // Lempar exception untuk menghentikan proses
-            throw new \Exception('Failed to get Snap Token from Midtrans.');
-        }
-
-        $body = $response->json();
-
-        // Log respons sukses
-        Log::info('Midtrans API Request Success', ['response_body' => $body]);
-
-        if (empty($body['token'])) {
-            // Log jika token tidak ditemukan di respons
-            Log::error('Midtrans Snap Token not found in response', ['response_body' => $body]);
-            throw new \Exception('Snap Token not found in Midtrans response.');
-        }
-
-        return $body['token'];
-    }
-
-    private function getSnapTokenManually(Order $order): string
+    private function getSnapTokenForOrder(Order $order): string
     {
         $order->load('user', 'items.product');
 
-        // Siapkan 'bahan masakan' (payload)
         $item_details = [];
         foreach ($order->items as $item) {
             $item_details[] = [
@@ -264,11 +109,11 @@ class CheckoutController extends Controller
 
         $recipientName = $order->recipient_name ?? $order->user->name;
         $customer_name_parts = explode(' ', $recipientName, 2);
-        $phone = $order->phone ?? '081234567890'; // Fallback phone
+        $phone = $order->phone ?? '081234567890';
 
         $params = [
             'transaction_details' => [
-                'order_id' => (string) $order->id . '-' . time(), // Tambahkan timestamp untuk memastikan keunikan
+                'order_id' => (string) $order->id . '-' . time(),
                 'gross_amount' => (int) ($order->total_price / 100),
             ],
             'customer_details' => [
@@ -280,36 +125,33 @@ class CheckoutController extends Controller
             'item_details' => array_values($item_details),
         ];
 
-        // Konfigurasi untuk request
         $serverKey = config('midtrans.server_key');
         $url = config('midtrans.is_production')
             ? 'https://app.midtrans.com/snap/v1/transactions'
             : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
 
-        Log::info('Manually Requesting Snap Token to Midtrans', ['params' => $params]);
-
-        // Kirim request menggunakan "kurir" andalan kita: Laravel HTTP
-        $response = Http::withOptions([
-            'verify' => config_path('ssl/cacert.pem'),
-        ])->withBasicAuth($serverKey, '')
+        $response = Http::withOptions(['verify' => config_path('ssl/cacert.pem')])
+            ->withBasicAuth($serverKey, '')
             ->withHeaders(['Accept' => 'application/json'])
             ->post($url, $params);
 
         if ($response->failed()) {
-            Log::error('Midtrans Manual API Request Failed', [
-                'status_code' => $response->status(),
-                'response_body' => $response->body()
-            ]);
             throw new \Exception('Gagal berkomunikasi dengan Midtrans: ' . $response->body());
         }
 
         $body = $response->json();
-
         if (empty($body['token'])) {
-            Log::error('Midtrans Snap Token not found in manual response', ['response_body' => $body]);
             throw new \Exception('Token Snap tidak ditemukan dalam respons Midtrans.');
         }
 
         return $body['token'];
+    }
+
+    public function success(Order $order)
+    {
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+        return view('checkout.success', compact('order'));
     }
 }

@@ -21,7 +21,6 @@ class OrdersRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                // Form tidak kita gunakan di sini karena pesanan dibuat oleh user
             ]);
     }
 
@@ -29,26 +28,16 @@ class OrdersRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('id')
-            // ===================================================================
-            // WOW #1: Membuat seluruh baris bisa diklik
-            // ===================================================================
             ->recordUrl(fn(Order $record): string => OrderResource::getUrl('view', ['record' => $record]))
-            // ===================================================================
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('Order ID')
                     ->searchable()
                     ->sortable(),
-
-                // ===================================================================
-                // WOW #2: Menampilkan jumlah item di setiap pesanan
-                // ===================================================================
                 Tables\Columns\TextColumn::make('items_count')
                     ->counts('items')
                     ->label('Items')
                     ->sortable(),
-                // ===================================================================
-
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -71,13 +60,10 @@ class OrdersRelationManager extends RelationManager
                     ->sortable(),
             ])
             ->filters([
-                //
             ])
             ->headerActions([
-                // Kita tidak ingin admin bisa membuat pesanan dari halaman user
             ])
             ->actions([
-                // Tombol "View" tidak lagi diperlukan karena seluruh baris sudah bisa diklik
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

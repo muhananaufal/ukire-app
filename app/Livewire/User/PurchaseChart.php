@@ -52,13 +52,11 @@ class PurchaseChart extends Component
             ],
         ];
 
-        // Kirim data ke browser setelah siap
         $this->dispatch('chartDataUpdated', data: $this->chartData);
     }
 
     public function render()
     {
-        // View ini sekarang hanya akan berisi kanvas
         return view('livewire.user.purchase-chart');
     }
 }

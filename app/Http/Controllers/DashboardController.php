@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -11,7 +10,6 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Ambil HANYA pesanan yang sedang aktif
         $activeOrders = $user->orders()
             ->whereIn('status', ['unpaid', 'processing', 'shipped'])
             ->with('items.product.images')
@@ -19,7 +17,6 @@ class DashboardController extends Controller
             ->take(3)
             ->get();
 
-        // Hitung statistik seumur hidup
         $stats = [
             'total_spent' => $user->orders()->whereIn('status', ['processing', 'shipped', 'completed'])->sum('total_price'),
             'total_orders' => $user->orders()->count(),

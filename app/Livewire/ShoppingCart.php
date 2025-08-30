@@ -9,7 +9,6 @@ class ShoppingCart extends Component
     public $cartItems;
     public $selectedItems = [];
 
-    // Properti terhitung untuk total
     public function getSubtotalProperty()
     {
         return collect($this->cartItems)
@@ -34,18 +33,18 @@ class ShoppingCart extends Component
     public function toggleAll($value)
     {
         foreach ($this->cartItems as $item) {
-            $this->selectedItems[$item->id] = (bool)$value;
+            $this->selectedItems[$item->id] = (bool) $value;
         }
     }
 
     public function updateQuantity($itemId, $quantity)
     {
-        $quantity = (int)$quantity; // Pastikan kuantitas adalah integer
+        $quantity = (int) $quantity;
         if ($quantity > 0) {
             \Cart::update($itemId, [
                 'quantity' => [
-                    'relative' => false, // <-- INI DIA SOLUSINYA
-                    'value' => $quantity
+                    'relative' => false,
+                    'value' => $quantity,
                 ],
             ]);
             $this->refreshCart();

@@ -14,30 +14,21 @@ class MidtransWebhookController extends Controller
         $payload = $request->all();
         Log::info('Midtrans Webhook Received:', $payload);
 
-        // ===================================================================
-        // VERIFIKASI MANUAL & LOGGING MENDALAM
-        // ===================================================================
         $serverKey = config('midtrans.server_key');
 
-        // Buat "sidik jari" versi kita sendiri
         $ourSignature = hash('sha512', $payload['order_id'] . $payload['status_code'] . $payload['gross_amount'] . $serverKey);
 
-        // Bandingkan dengan "sidik jari" dari Midtrans
         if ($ourSignature !== $payload['signature_key']) {
             Log::error('Midtrans Webhook Signature Verification FAILED', [
                 'our_signature' => $ourSignature,
                 'midtrans_signature' => $payload['signature_key'],
                 'order_id' => $payload['order_id'],
             ]);
-            // Untuk sementara, kita bisa hentikan di sini jika ingin sangat aman
-            // return response()->json(['error' => 'Invalid signature'], 403);
         } else {
             Log::info('Midtrans Webhook Signature Verification SUCCESSFUL for Order #' . $payload['order_id']);
         }
-        // ===================================================================
 
         try {
-            // Karena kita sudah verifikasi, kita bisa proses datanya secara manual
             $order = Order::findOrFail($payload['order_id']);
             $status = $payload['transaction_status'];
             $fraud = $payload['fraud_status'] ?? 'accept';

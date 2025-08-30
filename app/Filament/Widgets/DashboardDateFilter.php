@@ -12,8 +12,6 @@ class DashboardDateFilter extends Widget implements HasForms
 {
     use InteractsWithForms;
 
-    // protected static string $view = 'filament.widgets.dashboard-date-filter';
-
     public ?string $filter = '7d';
 
     public function form(Form $form): Form
@@ -30,14 +28,13 @@ class DashboardDateFilter extends Widget implements HasForms
                         'lm' => 'Last Month',
                     ])
                     ->default('7d')
-                    ->live() // <-- Ini penting untuk interaktivitas
+                    ->live()
                     ->afterStateUpdated(fn() => $this->dispatch('dateRangeUpdated', date: $this->filter)),
             ]);
     }
 
     public function mount(): void
     {
-        // Kirim event awal saat widget dimuat
         $this->dispatch('dateRangeUpdated', date: $this->filter);
     }
 }

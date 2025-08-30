@@ -1,15 +1,9 @@
 <x-checkout-layout>
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-        {{-- 1. INDIKATOR PROGRES DIHAPUS --}}
-
         <form action="{{ route('checkout.store') }}" method="POST">
             @csrf
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
-
                 <div class="bg-white border border-gray-200 rounded-lg p-6 lg:p-8">
-
-                    {{-- 2. TOMBOL KEMBALI DITAMBAHKAN --}}
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-bold text-gray-900">Kontak & Pengiriman</h2>
                         <a href="{{ route('cart.index') }}"
@@ -37,8 +31,8 @@
                     <div class="space-y-6">
                         <x-forms.floating-input type="email" name="email" label="Email" :value="old('email', auth()->user()->email)"
                             required />
-                        <x-forms.floating-input type="text" name="name" label="Nama Lengkap"
-                            :value="old('name', auth()->user()->name)" required />
+                        <x-forms.floating-input type="text" name="name" label="Nama Lengkap" :value="old('name', auth()->user()->name)"
+                            required />
                         <x-forms.floating-input type="text" name="shipping_address" label="Alamat Lengkap"
                             :value="old('shipping_address')" required placeholder="Jalan, Kota, Provinsi, Kode Pos" />
                         <x-forms.floating-input type="tel" name="phone" label="Nomor Telepon" :value="old('phone')"

@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Allow: /
+
+Sitemap: https://www.ukire.id/sitemap.xml

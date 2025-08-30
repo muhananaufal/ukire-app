@@ -6,11 +6,11 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers\OrdersRelationManager;
 use App\Models\User;
 use Filament\Forms;
-use Filament\Forms\Components\DatePicker; // <-- Pastikan ini ada
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Filters\Filter; // <-- Pastikan ini ada
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
@@ -79,7 +79,6 @@ class UserResource extends Resource
                     ->trueLabel('Verified')
                     ->falseLabel('Not Verified')
                     ->nullable(),
-                // -- FITUR BARU YANG BERMANFAAT --
                 Filter::make('created_at')
                     ->form([
                         DatePicker::make('created_from'),
@@ -99,7 +98,7 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(), // <-- Aksi "View" yang lebih aman
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -117,13 +116,10 @@ class UserResource extends Resource
 
     public static function getPages(): array
     {
-        // Kita tidak lagi butuh halaman 'create' karena user mendaftar sendiri
-        // Jika Anda ingin admin bisa membuat user, biarkan baris 'create'
         return [
             'index' => Pages\ListUsers::route('/'),
-            // 'create' => Pages\CreateUser::route('/create'), 
             'edit' => Pages\EditUser::route('/{record}/edit'),
-            'view' => Pages\ViewUser::route('/{record}/view'), // <-- Tambahkan halaman view
+            'view' => Pages\ViewUser::route('/{record}/view'),
         ];
     }
 }

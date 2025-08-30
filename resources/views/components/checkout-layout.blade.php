@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" href="{{ asset('image/logokecil.svg') }}" type="image/svg+xml">
+
     <title>{{ config('app.name', 'Laravel') }} - Checkout</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +21,7 @@
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-center sm:justify-start items-center h-20">
                 <a href="{{ route('home') }}">
-                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire.id" class="h-8" />
+                    <img src="{{ asset('image/logo.png') }}" alt="Logo Ukire" class="h-8" />
                 </a>
             </div>
         </div>
